@@ -2,4 +2,10 @@ node_modules
 dist
 *.tsbuildinfo
 .env
+.env.*
+!.env.example
 .DS_Store
+.cache
+.vite/
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
