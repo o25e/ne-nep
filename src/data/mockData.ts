@@ -98,42 +98,134 @@ export const chatRooms: Record<string, Message[]> = {
   ],
 }
 
+interface Topic {
+  title: string
+  context: string
+  keywords: string[]
+}
+
 // 연락처별 업무 주제 (친밀도 템플릿에 자연스럽게 결합되도록 설계)
-const TOPICS: Record<string, string[][]> = {
+const TOPICS: Record<string, Topic[]> = {
   c1: [
-    ['배포 일정', '오늘 배포 일정을 공유드리려고 합니다'],
-    ['코드 리뷰', '이번 PR 코드 리뷰를 요청드리고자 합니다'],
-    ['스프린트 회의 일정', '이번 주 스프린트 회의 일정을 조율하고 싶습니다'],
+    {
+      title: '배포 일정',
+      context: '오늘 배포 일정을 공유드리려고 합니다',
+      keywords: ['배포', '릴리즈', 'release', 'deploy', 'deployment', 'qa', '운영 반영'],
+    },
+    {
+      title: '코드 리뷰',
+      context: '이번 PR 코드 리뷰를 요청드리고자 합니다',
+      keywords: ['코드 리뷰', '코드리뷰', '리뷰', 'pr', 'pull request', '머지', 'merge', '검토'],
+    },
+    {
+      title: '스프린트 회의 일정',
+      context: '이번 주 스프린트 회의 일정을 조율하고 싶습니다',
+      keywords: ['스프린트', '회의', '일정', '미팅', '스크럼', 'sprint'],
+    },
   ],
   c2: [
-    ['디자인 시안 피드백', '전달해 주신 디자인 시안 피드백을 드리려고 합니다'],
-    ['작업 파일 공유', '작업 파일 공유 관련하여 말씀드리고 싶습니다'],
-    ['미팅 일정', '이번 주 미팅 일정을 확인하고 싶습니다'],
+    {
+      title: '디자인 시안 피드백',
+      context: '전달해 주신 디자인 시안 피드백을 드리려고 합니다',
+      keywords: ['디자인', '시안', '피드백', 'figma', '피그마', '수정'],
+    },
+    {
+      title: '작업 파일 공유',
+      context: '작업 파일 공유 관련하여 말씀드리고 싶습니다',
+      keywords: ['파일', '공유', '전달', '링크', '자료', '첨부'],
+    },
+    {
+      title: '미팅 일정',
+      context: '이번 주 미팅 일정을 확인하고 싶습니다',
+      keywords: ['미팅', '회의', '일정', '시간', '약속'],
+    },
   ],
   c3: [
-    ['이번 분기 성과 보고서', '이번 분기 성과 보고서 제출 건으로 연락드렸습니다'],
-    ['임원 회의 안건', '다음 주 임원 회의 안건을 공유드리려 합니다'],
-    ['사업 계획서 검토', '사업 계획서 검토를 요청드리고자 합니다'],
+    {
+      title: '이번 분기 성과 보고서',
+      context: '이번 분기 성과 보고서 제출 건으로 연락드렸습니다',
+      keywords: ['분기', '성과', '보고서', '지표', '매출', 'kpi'],
+    },
+    {
+      title: '임원 회의 안건',
+      context: '다음 주 임원 회의 안건을 공유드리려 합니다',
+      keywords: ['임원', '회의', '안건', '논의', '아젠다'],
+    },
+    {
+      title: '사업 계획서 검토',
+      context: '사업 계획서 검토를 요청드리고자 합니다',
+      keywords: ['사업', '계획서', '검토', '전략', '기획안'],
+    },
   ],
   c4: [
-    ['이번 캠페인 자료', '이번 캠페인 자료 관련하여 말씀드리고 싶습니다'],
-    ['마케팅 일정', '다음 달 마케팅 일정을 공유드리려 합니다'],
-    ['콘텐츠 초안', '콘텐츠 초안 검토를 부탁드리고 싶습니다'],
+    {
+      title: '이번 캠페인 자료',
+      context: '이번 캠페인 자료 관련하여 말씀드리고 싶습니다',
+      keywords: ['캠페인', '행사', '런칭', '프로모션', '이벤트'],
+    },
+    {
+      title: '마케팅 일정',
+      context: '다음 달 마케팅 일정을 공유드리려 합니다',
+      keywords: ['마케팅', '일정', '광고', '운영', '캘린더'],
+    },
+    {
+      title: '콘텐츠 초안',
+      context: '콘텐츠 초안 검토를 부탁드리고 싶습니다',
+      keywords: ['콘텐츠', '초안', '카피', '문구', '게시물', '원고'],
+    },
   ],
 }
 
-let _variantCounter = 0
+const DEFAULT_TOPIC: Topic = {
+  title: '업무 관련 사항',
+  context: '업무 관련 사항을 여쭤보고자 합니다',
+  keywords: [],
+}
+
+function normalizeKeywordText(text: string) {
+  return text.toLowerCase().replace(/\s+/g, '')
+}
+
+function getTopicScore(draft: string, topic: Topic) {
+  const normalizedDraft = normalizeKeywordText(draft)
+  const originalDraft = draft.toLowerCase()
+
+  return topic.keywords.reduce((score, keyword) => {
+    const normalizedKeyword = normalizeKeywordText(keyword)
+    if (!normalizedKeyword) return score
+
+    if (normalizedDraft.includes(normalizedKeyword) || originalDraft.includes(keyword.toLowerCase())) {
+      return score + normalizedKeyword.length
+    }
+
+    return score
+  }, 0)
+}
+
+function pickTopic(draft: string, contact: Contact) {
+  const contactTopics = TOPICS[contact.id] ?? []
+  const allTopics = Object.values(TOPICS).flat()
+  const candidateTopics = contactTopics.length > 0 ? contactTopics : [DEFAULT_TOPIC]
+  const matchedTopic = [...contactTopics, ...allTopics]
+    .map((topic, index) => ({ topic, index, score: getTopicScore(draft, topic) }))
+    .filter(({ score }) => score > 0)
+    .sort((a, b) => b.score - a.score || a.index - b.index)[0]?.topic
+
+  return matchedTopic ?? candidateTopics[0] ?? DEFAULT_TOPIC
+}
 
 export function generateSingleMessage(
   _draft: string,
   intimacy: Intimacy,
   traits: string[],
   contact: Contact,
-  _userNotes = ''
+  variantIndex: number = 0
 ): string {
-  const v = _variantCounter++ % 3
-  const topicPool = TOPICS[contact.id] ?? [['업무 관련 사항', '업무 관련 사항을 여쭤보고자 합니다']]
-  const [topic, fullContext] = topicPool[v]
+  const v = variantIndex % 3
+  
+  const matchedTopic = pickTopic(_draft, contact)
+  const topic = matchedTopic.title
+  const fullContext = matchedTopic.context
   const isBusy = traits.includes('#바쁨') || traits.includes('#답장짧음')
   const isFormal = traits.includes('#격식중시') || traits.includes('#결과지향')
   const name = contact.name

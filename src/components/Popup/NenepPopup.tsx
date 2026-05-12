@@ -21,17 +21,19 @@ export default function NenepPopup({
   const [historyIndex, setHistoryIndex] = useState(0)
 
   useEffect(() => {
-    const msg = generateSingleMessage(draft, contact.intimacy, contact.traits, contact)
+    const msg = generateSingleMessage(draft, intimacy, contact.traits, contact)
     setHistory([msg])
     setHistoryIndex(0)
-  }, [])
+    setLoading(false)
+  }, [contact, draft])
 
-  const doGenerate = (targetIntimacy: Intimacy, notes: string) => {
+  const doGenerate = (targetIntimacy: Intimacy) => {
     setLoading(true)
     setTimeout(() => {
-      const msg = generateSingleMessage(draft, targetIntimacy, contact.traits, contact, notes)
+      const nextIndex = history.length
+      const msg = generateSingleMessage(draft, targetIntimacy, contact.traits, contact, nextIndex)
       setHistory((prev) => [...prev, msg])
-      setHistoryIndex((prev) => prev + 1)
+      setHistoryIndex(nextIndex)
       setLoading(false)
     }, 720)
   }
@@ -72,7 +74,7 @@ export default function NenepPopup({
                   onChange={(e) => {
                     const val = Number(e.target.value) as Intimacy
                     setIntimacy(val)
-                    doGenerate(val, userNotes)
+                    doGenerate(val)
                   }}
                   className="w-full"
                   style={{ background: `linear-gradient(to right, #E57373 ${trackPct}%, #FECACA ${trackPct}%)` }}
@@ -122,7 +124,7 @@ export default function NenepPopup({
 
             <div className="flex items-center justify-between mt-2.5">
               <button
-                onClick={() => doGenerate(intimacy, userNotes)}
+                onClick={() => doGenerate(intimacy)}
                 disabled={loading}
                 className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 transition-colors disabled:opacity-40"
               >
