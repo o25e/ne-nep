@@ -214,6 +214,27 @@ function pickTopic(draft: string, contact: Contact) {
   return matchedTopic ?? candidateTopics[0] ?? DEFAULT_TOPIC
 }
 
+function applyNoteModifications(text: string, traits: string[]): string {
+  if (traits.includes('#기분안좋음')) {
+    if (!text.includes('죄송합니다')) {
+      return `타이밍이 좋지 않을 수 있어 죄송합니다만,\n${text}`
+    }
+  }
+  if (traits.includes('#피곤함')) {
+    if (!text.includes('죄송합니다')) {
+      return `피곤하실 텐데 죄송합니다. ${text}`
+    }
+  }
+  if (traits.includes('#급함')) {
+    const firstSentence = text.split('\n')[0].replace(/[!~]$/, '')
+    return `${firstSentence}. 빠른 확인 부탁드립니다.`
+  }
+  if (traits.includes('#공손히') && !traits.includes('#격식중시') && !traits.includes('#결과지향')) {
+    return text.replace(/!([\s]|$)/g, '.$1') + '\n감사합니다.'
+  }
+  return text
+}
+
 export function generateSingleMessage(
   _draft: string,
   intimacy: Intimacy,
@@ -222,24 +243,24 @@ export function generateSingleMessage(
   variantIndex: number = 0
 ): string {
   const v = variantIndex % 3
-  
+
   const matchedTopic = pickTopic(_draft, contact)
   const topic = matchedTopic.title
   const fullContext = matchedTopic.context
   const isBusy = traits.includes('#바쁨') || traits.includes('#답장짧음')
-  const isFormal = traits.includes('#격식중시') || traits.includes('#결과지향')
+  const isFormal = traits.includes('#격식중시') || traits.includes('#결과지향') || traits.includes('#공손히')
   const name = contact.name
 
+  let result: string
+
   if (intimacy === 0) {
-    return [
+    result = [
       `안녕하세요, ${name}님. 바쁘신 와중에 연락드려 죄송합니다.\n${fullContext}. 검토해 주시면 감사하겠습니다.`,
       `안녕하세요, ${name}님. ${topic} 관련하여 확인 부탁드리고자 연락드렸습니다.\n시간이 되실 때 회신 주시면 감사하겠습니다.`,
       `${name}님, 안녕하세요. ${fullContext}. 확인해 주시면 감사하겠습니다.`,
     ][v]
-  }
-
-  if (intimacy === 1) {
-    return isFormal
+  } else if (intimacy === 1) {
+    result = isFormal
       ? [
           `${name}님, ${topic} 관련하여 검토 부탁드립니다. 감사합니다.`,
           `${name}님, ${fullContext}. 확인해 주시면 감사하겠습니다.`,
@@ -250,10 +271,8 @@ export function generateSingleMessage(
           `${name}님, ${fullContext}. 검토 부탁드립니다.`,
           `${name}님, ${topic} 확인해 주시면 감사하겠습니다.`,
         ][v]
-  }
-
-  if (intimacy === 2) {
-    return isBusy
+  } else if (intimacy === 2) {
+    result = isBusy
       ? [
           `${name}님, ${topic} 확인 부탁드립니다!`,
           `${name}님, 바쁘신 중에 죄송한데 ${topic} 관련해서 확인해 주실 수 있을까요?`,
@@ -264,19 +283,19 @@ export function generateSingleMessage(
           `${name}님, ${fullContext}. 혹시 확인해 주실 수 있을까요?`,
           `${name}님, ${topic} 부탁드립니다. 감사합니다!`,
         ][v]
-  }
-
-  if (intimacy === 3) {
-    return [
+  } else if (intimacy === 3) {
+    result = [
       `${name}님, ${topic} 관련해서 확인 부탁해요!`,
       `${name}님, ${topic} 혹시 확인됐나요? 알려주세요!`,
       `${name}님, ${fullContext}. 한 번 봐주실 수 있어요?`,
     ][v]
+  } else {
+    result = [
+      `${name}님, ${topic} 관련해서 확인해줄 수 있어요? 감사해요!`,
+      `${name}님, ${topic} 됐는지 알려줄 수 있어요?`,
+      `${name}님, ${fullContext}. 부탁해요~!`,
+    ][v]
   }
 
-  return [
-    `${name}님, ${topic} 관련해서 확인해줄 수 있어요? 감사해요!`,
-    `${name}님, ${topic} 됐는지 알려줄 수 있어요?`,
-    `${name}님, ${fullContext}. 부탁해요~!`,
-  ][v]
+  return applyNoteModifications(result, traits)
 }

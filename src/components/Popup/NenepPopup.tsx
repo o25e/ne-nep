@@ -7,6 +7,32 @@ const toNearestIntimacy = (value: number): Intimacy => {
   return Math.min(4, Math.max(0, Math.round(value))) as Intimacy
 }
 
+const NOTE_KEYWORDS: [string[], string][] = [
+  [['바빠', '바쁜', '바쁨', '바빠보', '바쁘'], '#바쁨'],
+  [['기분', '안좋', '힘들어보', '우울', '예민'], '#기분안좋음'],
+  [['급해', '급한', '급함', '긴급', '빨리'], '#급함'],
+  [['공손', '정중', '격식', '조심스'], '#공손히'],
+  [['친절해보', '상냥'], '#친절함'],
+  [['피곤', '지쳐보', '피로'], '#피곤함'],
+  [['두괄식', '핵심만', '요점만', '짧게'], '#두괄식'],
+]
+
+function parseNotesToHashtags(notes: string): string[] {
+  const found = new Set<string>()
+  const lower = notes.toLowerCase()
+  for (const [keywords, tag] of NOTE_KEYWORDS) {
+    if (keywords.some((k) => lower.includes(k))) found.add(tag)
+  }
+  if (found.size === 0 && notes.trim()) {
+    notes
+      .trim()
+      .split(/[,，\s]+/)
+      .filter((w) => w.length > 0)
+      .forEach((w) => found.add(`#${w}`))
+  }
+  return [...found]
+}
+
 export default function NenepPopup({
   draft,
   contact,
@@ -19,7 +45,8 @@ export default function NenepPopup({
   onClose: () => void
 }) {
   const [sliderValue, setSliderValue] = useState<number>(contact.intimacy)
-  const [userNotes, setUserNotes] = useState('')
+  const [noteInput, setNoteInput] = useState('')
+  const [noteHashtags, setNoteHashtags] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
   const [history, setHistory] = useState<string[]>([])
   const [historyIndex, setHistoryIndex] = useState(0)
@@ -30,17 +57,30 @@ export default function NenepPopup({
     setHistory([msg])
     setHistoryIndex(0)
     setLoading(false)
+    setNoteInput('')
+    setNoteHashtags([])
   }, [contact, draft])
 
-  const doGenerate = (targetIntimacy: Intimacy) => {
+  const doGenerate = (targetIntimacy: Intimacy, extraTraits?: string[]) => {
     setLoading(true)
     setTimeout(() => {
       const nextIndex = history.length
-      const msg = generateSingleMessage(draft, targetIntimacy, contact.traits, contact, nextIndex)
+      const combinedTraits = [...contact.traits, ...(extraTraits ?? noteHashtags)]
+      const msg = generateSingleMessage(draft, targetIntimacy, combinedTraits, contact, nextIndex)
       setHistory((prev) => [...prev, msg])
       setHistoryIndex(nextIndex)
       setLoading(false)
     }, 720)
+  }
+
+  const handleNoteConfirm = () => {
+    if (noteInput.trim()) {
+      const tags = parseNotesToHashtags(noteInput)
+      setNoteHashtags(tags)
+      doGenerate(intimacy, tags)
+    } else {
+      doGenerate(intimacy)
+    }
   }
 
   const currentText = history[historyIndex] ?? ''
@@ -138,16 +178,36 @@ export default function NenepPopup({
             </div>
 
             <textarea
-              value={userNotes}
-              onChange={(e) => setUserNotes(e.target.value)}
-              placeholder={'상대방 특이사항 입력\n(예: 요즘 바빠 보임,\n두괄식 선호)'}
-              className="flex-1 w-full rounded-lg px-2.5 py-2 text-[11px] text-gray-600 placeholder-gray-300 outline-none resize-none leading-relaxed border border-gray-100 focus:border-gray-300 transition-colors"
-              style={{ background: '#FAFAFA', minHeight: '72px' }}
+              value={noteInput}
+              onChange={(e) => setNoteInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault()
+                  handleNoteConfirm()
+                }
+              }}
+              placeholder={'특이사항 입력 후 Enter\n(예: 오늘 바빠보임,\n기분 안좋아보임)'}
+              className="w-full rounded-lg px-2.5 py-2 text-[11px] text-gray-600 placeholder-gray-300 outline-none resize-none leading-relaxed border border-gray-100 focus:border-gray-300 transition-colors"
+              style={{ background: '#FAFAFA', minHeight: '60px' }}
             />
+
+            {noteHashtags.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-1.5">
+                {noteHashtags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="text-[10px] px-1.5 py-0.5 rounded-full font-semibold"
+                    style={{ background: '#FFF5F5', color: '#E57373', border: '1px solid #FECACA' }}
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
 
             <div className="flex items-center justify-between mt-2.5">
               <button
-                onClick={() => doGenerate(intimacy)}
+                onClick={handleNoteConfirm}
                 disabled={loading}
                 className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 transition-colors disabled:opacity-40"
               >
