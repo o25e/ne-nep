@@ -3,6 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { X, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Contact, Intimacy, INTIMACY_LABELS, generateSingleMessage } from '../../data/mockData'
 
+const toNearestIntimacy = (value: number): Intimacy => {
+  return Math.min(4, Math.max(0, Math.round(value))) as Intimacy
+}
+
 export default function NenepPopup({
   draft,
   contact,
@@ -14,14 +18,15 @@ export default function NenepPopup({
   onApply: (text: string) => void
   onClose: () => void
 }) {
-  const [intimacy, setIntimacy] = useState<Intimacy>(contact.intimacy)
+  const [sliderValue, setSliderValue] = useState<number>(contact.intimacy)
   const [userNotes, setUserNotes] = useState('')
   const [loading, setLoading] = useState(false)
   const [history, setHistory] = useState<string[]>([])
   const [historyIndex, setHistoryIndex] = useState(0)
 
   useEffect(() => {
-    const msg = generateSingleMessage(draft, intimacy, contact.traits, contact)
+    setSliderValue(contact.intimacy)
+    const msg = generateSingleMessage(draft, contact.intimacy, contact.traits, contact)
     setHistory([msg])
     setHistoryIndex(0)
     setLoading(false)
@@ -39,7 +44,8 @@ export default function NenepPopup({
   }
 
   const currentText = history[historyIndex] ?? ''
-  const trackPct = (intimacy / 4) * 100
+  const intimacy = toNearestIntimacy(sliderValue)
+  const trackPct = (sliderValue / 4) * 100
 
   return (
     <motion.div
@@ -64,21 +70,38 @@ export default function NenepPopup({
               <span className="text-[11px] font-bold flex-shrink-0 w-20" style={{ color: '#E57373' }}>
                 {INTIMACY_LABELS[intimacy]}
               </span>
-              <div className="flex-1">
+              <div className="flex-1 pt-3">
                 <input
                   type="range"
                   min={0}
                   max={4}
-                  step={1}
-                  value={intimacy}
+                  step={0.01}
+                  value={sliderValue}
                   onChange={(e) => {
-                    const val = Number(e.target.value) as Intimacy
-                    setIntimacy(val)
-                    doGenerate(val)
+                    const nextValue = Number(e.target.value)
+                    const nextIntimacy = toNearestIntimacy(nextValue)
+                    setSliderValue(nextValue)
+
+                    if (nextIntimacy !== intimacy) {
+                      doGenerate(nextIntimacy)
+                    }
                   }}
-                  className="w-full"
+                  className="w-full intimacy-slider"
                   style={{ background: `linear-gradient(to right, #E57373 ${trackPct}%, #FECACA ${trackPct}%)` }}
                 />
+                <div className="relative mt-1.5 h-3 text-[10px] font-semibold text-gray-300">
+                  {['0%', '25%', '50%', '75%', '100%'].map((mark, index) => (
+                    <span
+                      key={mark}
+                      className={`absolute top-0 -translate-x-1/2 whitespace-nowrap ${
+                        index === intimacy ? 'text-[#E57373]' : ''
+                      }`}
+                      style={{ left: `${index * 25}%` }}
+                    >
+                      {mark}
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
 
