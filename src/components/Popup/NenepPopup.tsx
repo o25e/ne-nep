@@ -93,7 +93,7 @@ export default function NenepPopup({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 6 }}
       transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-      className="absolute bottom-[calc(100%+6px)] left-0 right-0 z-50"
+      className="absolute bottom-[calc(100%+6px)] left-4 z-50 w-[92%] min-w-[520px] max-w-[820px]"
     >
       <div
         className="rounded-2xl overflow-hidden"
