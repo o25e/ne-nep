@@ -67,17 +67,49 @@ export default function MessageInput({
         }}
       >
         <div className="px-4 pt-3 pb-2">
-          <textarea
-            ref={textareaRef}
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            rows={1}
-            placeholder={`${contact.name}에게 메시지 보내기`}
-            className="w-full bg-transparent text-[13px] text-gray-800 placeholder-gray-400 outline-none resize-none leading-relaxed"
-            style={{ minHeight: '22px', maxHeight: '120px' }}
-          />
+          <div className="relative">
+            {/* 회색 가이드 문장 */}
+            <div
+              className="
+              absolute inset-0
+              pointer-events-none
+              text-[13px]
+              text-gray-400
+              leading-relaxed
+              whitespace-pre-wrap
+              break-words
+            "
+            >
+              지난주 회의 때 메타 광고 CTR, 확인 가능한지, 검토 후 괜찮으면 진행
+            </div>
+
+            {/* 실제 입력창 */}
+            <textarea
+              ref={textareaRef}
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              onKeyDown={handleKeyDown}
+              rows={1}
+              className="
+              relative
+              w-full
+              bg-transparent
+              text-[13px]
+              text-gray-800
+              outline-none
+              resize-none
+              leading-relaxed
+            "
+              style={{
+                minHeight: '22px',
+                maxHeight: '120px',
+                fontFamily: 'inherit',
+                letterSpacing: '0px',
+              }}
+            />
+          </div>
         </div>
+        <div className="flex items-center justify-between px-3 pb-2.5"></div>
 
         <div className="flex items-center justify-between px-3 pb-2.5">
           <div className="flex items-center gap-0.5">
