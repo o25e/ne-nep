@@ -15,6 +15,13 @@ export default function MessageInput({
   const [showPopup, setShowPopup] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  const guideMessage =
+    contact.intimacy >= 80
+      ? '야 지난번 메타 광고 CTR 체크 좀 해줄래? 괜찮으면 바로 가자'
+      : contact.intimacy >= 50
+        ? '지난주 메타 광고 CTR 확인 부탁드립니다. 괜찮으면 진행하려고 합니다.'
+        : '지난주 회의 때 메타 광고 CTR, 확인 가능한지, 검토 후 괜찮으면 진행';
+
   useEffect(() => {
     const handler = (e: globalThis.KeyboardEvent) => {
       if (e.altKey && e.key.toLowerCase() === 'l') {
@@ -74,13 +81,22 @@ export default function MessageInput({
               absolute inset-0
               pointer-events-none
               text-[13px]
-              text-gray-400
               leading-relaxed
               whitespace-pre-wrap
               break-words
+              transition-all
+              duration-200
+              font-medium
+              select-none
             "
             >
-              지난주 회의 때 메타 광고 CTR, 확인 가능한지, 검토 후 괜찮으면 진행
+              {showPopup ? (
+                <span className="text-gray-400">{guideMessage}</span>
+              ) : (
+                <span className="text-gray-500 animate-pulse">
+                  ALT + L 을 눌러보세요!
+                </span>
+              )}
             </div>
 
             {/* 실제 입력창 */}
