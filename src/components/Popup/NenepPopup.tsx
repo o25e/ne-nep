@@ -7,31 +7,13 @@ const toNearestIntimacy = (value: number): Intimacy => {
   return Math.min(4, Math.max(0, Math.round(value))) as Intimacy
 }
 
-const NOTE_KEYWORDS: [string[], string][] = [
-  [['바빠', '바쁜', '바쁨', '바빠보', '바쁘'], '#바쁨'],
-  [['기분', '안좋', '힘들어보', '우울', '예민'], '#기분안좋음'],
-  [['급해', '급한', '급함', '긴급', '빨리'], '#급함'],
-  [['공손', '정중', '격식', '조심스'], '#공손히'],
-  [['친절해보', '상냥'], '#친절함'],
-  [['피곤', '지쳐보', '피로'], '#피곤함'],
-  [['두괄식', '핵심만', '요점만', '짧게'], '#두괄식'],
-]
+const CHIPS = [
+  { id: 'polite', label: '더 공손하게', trait: '#공손히' },
+  { id: 'soft', label: '더 부드럽게', trait: '#부드럽게' },
+  { id: 'concise', label: '더 간결하게', trait: '#간결하게' },
+] as const
 
-function parseNotesToHashtags(notes: string): string[] {
-  const found = new Set<string>()
-  const lower = notes.toLowerCase()
-  for (const [keywords, tag] of NOTE_KEYWORDS) {
-    if (keywords.some((k) => lower.includes(k))) found.add(tag)
-  }
-  if (found.size === 0 && notes.trim()) {
-    notes
-      .trim()
-      .split(/[,，\s]+/)
-      .filter((w) => w.length > 0)
-      .forEach((w) => found.add(`#${w}`))
-  }
-  return [...found]
-}
+type ChipId = (typeof CHIPS)[number]['id']
 
 export default function NenepPopup({
   draft,
@@ -45,8 +27,7 @@ export default function NenepPopup({
   onClose: () => void
 }) {
   const [sliderValue, setSliderValue] = useState<number>(contact.intimacy)
-  const [noteInput, setNoteInput] = useState('')
-  const [noteHashtags, setNoteHashtags] = useState<string[]>([])
+  const [selectedChip, setSelectedChip] = useState<ChipId | null>(null)
   const [loading, setLoading] = useState(false)
   const [history, setHistory] = useState<string[]>([])
   const [historyIndex, setHistoryIndex] = useState(0)
@@ -57,15 +38,14 @@ export default function NenepPopup({
     setHistory([msg])
     setHistoryIndex(0)
     setLoading(false)
-    setNoteInput('')
-    setNoteHashtags([])
+    setSelectedChip(null)
   }, [contact, draft])
 
   const doGenerate = (targetIntimacy: Intimacy, extraTraits?: string[]) => {
     setLoading(true)
     setTimeout(() => {
       const nextIndex = history.length
-      const combinedTraits = [...contact.traits, ...(extraTraits ?? noteHashtags)]
+      const combinedTraits = [...contact.traits, ...(extraTraits ?? [])]
       const msg = generateSingleMessage(draft, targetIntimacy, combinedTraits, contact, nextIndex)
       setHistory((prev) => [...prev, msg])
       setHistoryIndex(nextIndex)
@@ -73,13 +53,14 @@ export default function NenepPopup({
     }, 720)
   }
 
-  const handleNoteConfirm = () => {
-    if (noteInput.trim()) {
-      const tags = parseNotesToHashtags(noteInput)
-      setNoteHashtags(tags)
-      doGenerate(intimacy, tags)
-    } else {
+  const handleChipClick = (chipId: ChipId) => {
+    if (selectedChip === chipId) {
+      setSelectedChip(null)
       doGenerate(intimacy)
+    } else {
+      setSelectedChip(chipId)
+      const chip = CHIPS.find((c) => c.id === chipId)!
+      doGenerate(intimacy, [chip.trait])
     }
   }
 
@@ -103,48 +84,58 @@ export default function NenepPopup({
           border: '1px solid #FECACA',
         }}
       >
-        <div className="m-2 rounded-xl bg-white flex overflow-hidden" style={{ border: '1px solid #e5e7eb' }}>
-          <div className="flex-1 px-4 py-3 min-w-0 flex flex-col gap-2.5">
-            <div className="flex items-center gap-2.5">
-              <span className="text-[11px] font-semibold text-gray-400 flex-shrink-0 w-10">친밀도</span>
-              <span className="text-[11px] font-bold flex-shrink-0 w-20" style={{ color: '#E57373' }}>
-                {INTIMACY_LABELS[intimacy]}
-              </span>
-              <div className="flex-1 pt-3">
-                <input
-                  type="range"
-                  min={0}
-                  max={4}
-                  step={0.01}
-                  value={sliderValue}
-                  onChange={(e) => {
-                    const nextValue = Number(e.target.value)
-                    const nextIntimacy = toNearestIntimacy(nextValue)
-                    setSliderValue(nextValue)
-
-                    if (nextIntimacy !== intimacy) {
-                      doGenerate(nextIntimacy)
-                    }
-                  }}
-                  className="w-full intimacy-slider"
-                  style={{ background: `linear-gradient(to right, #E57373 ${trackPct}%, #FECACA ${trackPct}%)` }}
-                />
-                <div className="relative mt-1.5 h-3 text-[10px] font-semibold text-gray-300">
-                  {['0%', '25%', '50%', '75%', '100%'].map((mark, index) => (
-                    <span
-                      key={mark}
-                      className={`absolute top-0 -translate-x-1/2 whitespace-nowrap ${
-                        index === intimacy ? 'text-[#E57373]' : ''
-                      }`}
-                      style={{ left: `${index * 25}%` }}
-                    >
-                      {mark}
-                    </span>
-                  ))}
+        <div className="m-2 rounded-xl bg-white overflow-hidden" style={{ border: '1px solid #e5e7eb' }}>
+          <div className="px-4 py-3 flex flex-col gap-2.5">
+            {/* 닫기 버튼 */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5 flex-1">
+                <span className="text-[11px] font-semibold text-gray-400 flex-shrink-0 w-10">친밀도</span>
+                <span className="text-[11px] font-bold flex-shrink-0 w-20" style={{ color: '#E57373' }}>
+                  {INTIMACY_LABELS[intimacy]}
+                </span>
+                <div className="flex-1 pt-3">
+                  <input
+                    type="range"
+                    min={0}
+                    max={4}
+                    step={0.01}
+                    value={sliderValue}
+                    onChange={(e) => {
+                      const nextValue = Number(e.target.value)
+                      const nextIntimacy = toNearestIntimacy(nextValue)
+                      setSliderValue(nextValue)
+                      if (nextIntimacy !== intimacy) {
+                        const chip = CHIPS.find((c) => c.id === selectedChip)
+                        doGenerate(nextIntimacy, chip ? [chip.trait] : [])
+                      }
+                    }}
+                    className="w-full intimacy-slider"
+                    style={{ background: `linear-gradient(to right, #E57373 ${trackPct}%, #FECACA ${trackPct}%)` }}
+                  />
+                  <div className="relative mt-1.5 h-3 text-[10px] font-semibold text-gray-300">
+                    {['0%', '25%', '50%', '75%', '100%'].map((mark, index) => (
+                      <span
+                        key={mark}
+                        className={`absolute top-0 -translate-x-1/2 whitespace-nowrap ${
+                          index === intimacy ? 'text-[#E57373]' : ''
+                        }`}
+                        style={{ left: `${index * 25}%` }}
+                      >
+                        {mark}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
+              <button
+                onClick={onClose}
+                className="ml-3 mb-3 w-5 h-5 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 transition-colors flex-shrink-0"
+              >
+                <X size={11} />
+              </button>
             </div>
 
+            {/* 텍스트 */}
             <div>
               <div className="text-[11px] font-semibold text-gray-400 mb-1.5">텍스트</div>
               <div
@@ -165,54 +156,41 @@ export default function NenepPopup({
                 </AnimatePresence>
               </div>
             </div>
-          </div>
 
-          <div className="w-px bg-gray-100 my-3" />
+            {/* 하단 액션 버튼 */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => {
+                    const chip = CHIPS.find((c) => c.id === selectedChip)
+                    doGenerate(intimacy, chip ? [chip.trait] : [])
+                  }}
+                  disabled={loading}
+                  className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 transition-colors disabled:opacity-40"
+                >
+                  <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
+                </button>
 
-          <div className="w-44 flex-shrink-0 px-3 py-3 flex flex-col">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] font-semibold text-gray-400">특이사항</span>
-              <button onClick={onClose} className="w-5 h-5 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 transition-colors">
-                <X size={11} />
-              </button>
-            </div>
-
-            <textarea
-              value={noteInput}
-              onChange={(e) => setNoteInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault()
-                  handleNoteConfirm()
-                }
-              }}
-              placeholder={'특이사항 입력 후 Enter\n(예: 오늘 바빠보임,\n기분 안좋아보임)'}
-              className="w-full rounded-lg px-2.5 py-2 text-[11px] text-gray-600 placeholder-gray-300 outline-none resize-none leading-relaxed border border-gray-100 focus:border-gray-300 transition-colors"
-              style={{ background: '#FAFAFA', minHeight: '60px' }}
-            />
-
-            {noteHashtags.length > 0 && (
-              <div className="flex flex-wrap gap-1 mt-1.5">
-                {noteHashtags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="text-[10px] px-1.5 py-0.5 rounded-full font-semibold"
-                    style={{ background: '#FFF5F5', color: '#E57373', border: '1px solid #FECACA' }}
-                  >
-                    {tag}
-                  </span>
-                ))}
+                {CHIPS.map((chip) => {
+                  const isActive = selectedChip === chip.id
+                  return (
+                    <button
+                      key={chip.id}
+                      onClick={() => handleChipClick(chip.id)}
+                      disabled={loading}
+                      className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all disabled:opacity-40"
+                      style={
+                        isActive
+                          ? { background: '#FFF5F5', color: '#E57373', border: '1px solid #FECACA' }
+                          : { background: '#F5F5F5', color: '#9CA3AF', border: '1px solid #E5E7EB' }
+                      }
+                    >
+                      {isActive && <span>✓</span>}
+                      {chip.label}
+                    </button>
+                  )
+                })}
               </div>
-            )}
-
-            <div className="flex items-center justify-between mt-2.5">
-              <button
-                onClick={handleNoteConfirm}
-                disabled={loading}
-                className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 transition-colors disabled:opacity-40"
-              >
-                <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
-              </button>
 
               <div className="flex items-center gap-0.5">
                 <button

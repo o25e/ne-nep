@@ -183,22 +183,65 @@ export function generateSingleMessage(
 ): string {
   const base =
     draft.trim() ||
-    '지난주 회의 때 메타 광고 CTR 확인 가능한지, 검토 후 괜찮으면 진행';
+    '말씀하신 내용 확인 가능한지 검토 후 괜찮으면 진행하려고 합니다';
 
   const name = contact.name;
   const isBusy = traits.includes('#바쁨') || traits.includes('#답장짧음');
+  const isPolite = traits.includes('#공손히');
+  const isSoft = traits.includes('#부드럽게');
+  const isConcise = traits.includes('#간결하게');
 
-  const transforms: Record<Intimacy, (text: string) => string> = {
-    0: (text) =>
-      `안녕하세요, ${name}님. 바쁘신 와중에 연락드려 죄송합니다.\n${text}\n확인해 주시면 감사하겠습니다.`,
-    1: (text) => `${name}님, ${text}\n검토해 주시면 감사하겠습니다.`,
-    2: (text) =>
+  if (isConcise) {
+    const concise: Record<Intimacy, () => string> = {
+      0: () => `${name}님, ${base} 확인 부탁드립니다.`,
+      1: () => `${name}님, ${base} 검토 부탁드려요.`,
+      2: () => `${name}님, ${base} 확인해 주세요.`,
+      3: () => `${name}님, ${base} 확인해줄 수 있어요?`,
+      4: () => `${name}님, ${base} 봐줘!`,
+    };
+    return concise[intimacy]();
+  }
+
+  if (isPolite) {
+    const polite: Record<Intimacy, () => string> = {
+      0: () =>
+        `안녕하세요, ${name}님. 갑작스럽게 연락드려 대단히 죄송합니다.\n${base}\n불편하시다면 언제든 말씀 주세요. 확인해 주시면 정말 감사하겠습니다.`,
+      1: () =>
+        `${name}님, 다름이 아니라 ${base}\n혹시 검토해 주실 수 있으실까요? 바쁘신 중에 부탁드려 정말 감사합니다.`,
+      2: () =>
+        `${name}님, 바쁘신 와중에 번거롭게 해드려 죄송합니다. ${base} 혹시 확인해 주실 수 있을까요?`,
+      3: () =>
+        `${name}님, 혹시 괜찮으시면 ${base} 한번 검토해 주실 수 있으실까요? 감사합니다!`,
+      4: () => `${name}님, 바쁜데 혹시 ${base} 봐줄 수 있어? 고마워!`,
+    };
+    return polite[intimacy]();
+  }
+
+  if (isSoft) {
+    const soft: Record<Intimacy, () => string> = {
+      0: () =>
+        `안녕하세요, ${name}님 :) 바쁘신 와중에 죄송한데요, ${base} 편하실 때 한 번 봐주시면 감사하겠습니다.`,
+      1: () =>
+        `${name}님, 혹시 괜찮으시다면 ${base} 한번 봐주시면 좋을 것 같아요 :)`,
+      2: () =>
+        `${name}님, 혹시 ${base} 여유 되실 때 한번 봐주실 수 있을까요?`,
+      3: () => `${name}님~ ${base} 시간 날 때 봐주실 수 있으세요?`,
+      4: () => `${name}님~ ${base} 시간 될 때 봐줘~`,
+    };
+    return soft[intimacy]();
+  }
+
+  const transforms: Record<Intimacy, () => string> = {
+    0: () =>
+      `안녕하세요, ${name}님. 바쁘신 와중에 연락드려 죄송합니다.\n${base}\n확인해 주시면 감사하겠습니다.`,
+    1: () => `${name}님, ${base}\n검토해 주시면 감사하겠습니다.`,
+    2: () =>
       isBusy
-        ? `${name}님, 바쁘신 중에 죄송한데 ${text} 확인해 주실 수 있을까요?`
-        : `${name}님, ${text} 확인 부탁드릴게요!`,
-    3: (text) => `${name}님, ${text} 한번 봐주실 수 있어요?`,
-    4: (text) => `${name}님, ${text} 확인해줄 수 있어요? ㅎㅎ`,
+        ? `${name}님, 바쁘신 중에 죄송한데 ${base} 확인해 주실 수 있을까요?`
+        : `${name}님, ${base} 확인 부탁드릴게요!`,
+    3: () => `${name}님, ${base} 한번 봐주실 수 있어요?`,
+    4: () => `${name}님, ${base} 확인해줄 수 있어요? ㅎㅎ`,
   };
 
-  return transforms[intimacy](draft);
+  return transforms[intimacy]();
 }
