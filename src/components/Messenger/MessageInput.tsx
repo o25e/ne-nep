@@ -76,28 +76,30 @@ export default function MessageInput({
         <div className="px-4 pt-3 pb-2">
           <div className="relative">
             {/* 회색 가이드 문장 */}
-            <div
-              className="
-              absolute inset-0
-              pointer-events-none
-              text-[13px]
-              leading-relaxed
-              whitespace-pre-wrap
-              break-words
-              transition-all
-              duration-200
-              font-medium
-              select-none
-            "
-            >
-              {showPopup ? (
-                <span className="text-gray-400">{guideMessage}</span>
-              ) : (
-                <span className="text-gray-500 animate-pulse">
-                  ALT + L 을 눌러보세요!
-                </span>
-              )}
-            </div>
+            {!value && (
+              <div
+                className="
+                absolute inset-0
+                pointer-events-none
+                text-[13px]
+                leading-relaxed
+                whitespace-pre-wrap
+                break-words
+                transition-all
+                duration-200
+                font-medium
+                select-none
+              "
+              >
+                {showPopup ? (
+                  <span className="text-gray-400">{guideMessage}</span>
+                ) : (
+                  <span className="text-gray-500 animate-pulse">
+                    ALT + L 을 눌러보세요!
+                  </span>
+                )}
+              </div>
+            )}
 
             {/* 실제 입력창 */}
             <textarea
