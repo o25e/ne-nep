@@ -15,12 +15,12 @@ export default function MessageInput({
   const [showPopup, setShowPopup] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const guideMessage =
-    contact.intimacy >= 80
-      ? '야 지난번 메타 광고 CTR 체크 좀 해줄래? 괜찮으면 바로 가자'
-      : contact.intimacy >= 50
-        ? '지난주 메타 광고 CTR 확인 부탁드립니다. 괜찮으면 진행하려고 합니다.'
-        : '지난주 회의 때 메타 광고 CTR, 확인 가능한지, 검토 후 괜찮으면 진행';
+  const placeholder =
+    contact.intimacy >= 3
+      ? '하고 싶은 말 편하게 적어봐 — ALT+L 로 다듬기'
+      : contact.intimacy >= 1
+        ? '전달할 내용을 입력하세요 — ALT+L 로 다듬기'
+        : '메시지를 입력해주세요 — ALT+L 로 다듬기';
 
   useEffect(() => {
     const handler = (e: globalThis.KeyboardEvent) => {
@@ -91,13 +91,7 @@ export default function MessageInput({
                 select-none
               "
               >
-                {showPopup ? (
-                  <span className="text-gray-400">{guideMessage}</span>
-                ) : (
-                  <span className="text-gray-500 animate-pulse">
-                    ALT + L 을 눌러보세요!
-                  </span>
-                )}
+                <span className="text-gray-400">{placeholder}</span>
               </div>
             )}
 
