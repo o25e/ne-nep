@@ -20,11 +20,11 @@ export interface Message {
 }
 
 export const INTIMACY_LABELS: Record<Intimacy, string> = {
-  0: '거의 모르는 사이',
-  1: '조금 아는 사이',
-  2: '적당한 사이',
-  3: '편한 사이',
-  4: '친한 사이',
+  0: '공식적',
+  1: '정중한',
+  2: '보통',
+  3: '편한',
+  4: '친근한',
 };
 
 export const ME = { name: '김현아', avatar: '김' };
