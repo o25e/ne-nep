@@ -46,7 +46,7 @@ export default function NenepPopup({
     setTimeout(() => {
       const nextIndex = history.length
       const combinedTraits = [...contact.traits, ...(extraTraits ?? [])]
-      const msg = generateSingleMessage(draft, targetIntimacy, combinedTraits, contact, nextIndex)
+      const msg = generateSingleMessage(draft, targetIntimacy, combinedTraits, contact)
       setHistory((prev) => [...prev, msg])
       setHistoryIndex(nextIndex)
       setLoading(false)
@@ -89,7 +89,7 @@ export default function NenepPopup({
             {/* 닫기 버튼 */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5 flex-1">
-                <span className="text-[11px] font-semibold text-gray-400 flex-shrink-0 w-10">친밀도</span>
+                <span className="text-[11px] font-semibold text-gray-400 flex-shrink-0 whitespace-nowrap">관계온도</span>
                 <span className="text-[11px] font-bold flex-shrink-0 w-20" style={{ color: '#E57373' }}>
                   {INTIMACY_LABELS[intimacy]}
                 </span>
@@ -113,15 +113,15 @@ export default function NenepPopup({
                     style={{ background: `linear-gradient(to right, #E57373 ${trackPct}%, #FECACA ${trackPct}%)` }}
                   />
                   <div className="relative mt-1.5 h-3 text-[10px] font-semibold text-gray-300">
-                    {['0%', '25%', '50%', '75%', '100%'].map((mark, index) => (
+                    {([0, 1, 2, 3, 4] as const).map((level) => (
                       <span
-                        key={mark}
+                        key={level}
                         className={`absolute top-0 -translate-x-1/2 whitespace-nowrap ${
-                          index === intimacy ? 'text-[#E57373]' : ''
+                          level === intimacy ? 'text-[#E57373]' : ''
                         }`}
-                        style={{ left: `${index * 25}%` }}
+                        style={{ left: `${level * 25}%` }}
                       >
-                        {mark}
+                        {INTIMACY_LABELS[level]}
                       </span>
                     ))}
                   </div>
@@ -166,7 +166,8 @@ export default function NenepPopup({
                     doGenerate(intimacy, chip ? [chip.trait] : [])
                   }}
                   disabled={loading}
-                  className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 transition-colors disabled:opacity-40"
+                  className="flex items-center gap-1 px-2 h-7 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-40"
+                  style={{ color: '#E8875A' }}
                 >
                   <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
                 </button>
