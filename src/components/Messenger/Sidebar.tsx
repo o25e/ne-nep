@@ -1,5 +1,5 @@
 import { Search } from 'lucide-react'
-import { contacts, Contact, INTIMACY_LABELS } from '../../data/mockData'
+import { contacts, Contact } from '../../data/mockData'
 
 interface SidebarProps {
   selectedId: string
@@ -83,10 +83,6 @@ function ContactRow({
         </div>
         <div className="flex items-center gap-1 mt-0.5">
           <span className="text-[11px] text-gray-400 truncate">{contact.role}</span>
-          <span className="text-gray-300 text-[10px]">·</span>
-          <span className="text-[10px] text-blue-500 font-medium flex-shrink-0">
-            {INTIMACY_LABELS[contact.intimacy]}
-          </span>
         </div>
       </div>
     </button>
