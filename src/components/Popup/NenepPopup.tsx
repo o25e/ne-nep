@@ -1,19 +1,20 @@
-import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { X, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react'
-import { Contact, Intimacy, INTIMACY_LABELS, generateSingleMessage } from '../../data/mockData'
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Contact, Intimacy, INTIMACY_LABELS } from '../../data/mockData';
+import { generateSingleMessage } from '../../utils/generateSingleMessage';
 
 const toNearestIntimacy = (value: number): Intimacy => {
-  return Math.min(4, Math.max(0, Math.round(value))) as Intimacy
-}
+  return Math.min(4, Math.max(0, Math.round(value))) as Intimacy;
+};
 
 const CHIPS = [
   { id: 'polite', label: '더 공손하게', trait: '#공손히' },
   { id: 'soft', label: '더 부드럽게', trait: '#부드럽게' },
   { id: 'concise', label: '더 간결하게', trait: '#간결하게' },
-] as const
+] as const;
 
-type ChipId = (typeof CHIPS)[number]['id']
+type ChipId = (typeof CHIPS)[number]['id'];
 
 export default function NenepPopup({
   draft,
@@ -21,52 +22,52 @@ export default function NenepPopup({
   onApply,
   onClose,
 }: {
-  draft: string
-  contact: Contact
-  onApply: (text: string) => void
-  onClose: () => void
+  draft: string;
+  contact: Contact;
+  onApply: (text: string) => void;
+  onClose: () => void;
 }) {
-  const [sliderValue, setSliderValue] = useState<number>(contact.intimacy)
-  const [selectedChip, setSelectedChip] = useState<ChipId | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [history, setHistory] = useState<string[]>([])
-  const [historyIndex, setHistoryIndex] = useState(0)
+  const [sliderValue, setSliderValue] = useState<number>(contact.intimacy);
+  const [selectedChip, setSelectedChip] = useState<ChipId | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [history, setHistory] = useState<string[]>([]);
+  const [historyIndex, setHistoryIndex] = useState(0);
 
   useEffect(() => {
-    setSliderValue(contact.intimacy)
-    const msg = generateSingleMessage(draft, contact.intimacy, contact.traits, contact)
-    setHistory([msg])
-    setHistoryIndex(0)
-    setLoading(false)
-    setSelectedChip(null)
-  }, [contact, draft])
+    setSliderValue(contact.intimacy);
+    const msg = generateSingleMessage(contact);
+    setHistory([msg]);
+    setHistoryIndex(0);
+    setLoading(false);
+    setSelectedChip(null);
+  }, [contact, draft]);
 
   const doGenerate = (targetIntimacy: Intimacy, extraTraits?: string[]) => {
-    setLoading(true)
+    setLoading(true);
     setTimeout(() => {
-      const nextIndex = history.length
-      const combinedTraits = [...contact.traits, ...(extraTraits ?? [])]
-      const msg = generateSingleMessage(draft, targetIntimacy, combinedTraits, contact)
-      setHistory((prev) => [...prev, msg])
-      setHistoryIndex(nextIndex)
-      setLoading(false)
-    }, 720)
-  }
+      const nextIndex = history.length;
+      const combinedTraits = [...contact.traits, ...(extraTraits ?? [])];
+      const msg = generateSingleMessage(contact);
+      setHistory((prev) => [...prev, msg]);
+      setHistoryIndex(nextIndex);
+      setLoading(false);
+    }, 720);
+  };
 
   const handleChipClick = (chipId: ChipId) => {
     if (selectedChip === chipId) {
-      setSelectedChip(null)
-      doGenerate(intimacy)
+      setSelectedChip(null);
+      doGenerate(intimacy);
     } else {
-      setSelectedChip(chipId)
-      const chip = CHIPS.find((c) => c.id === chipId)!
-      doGenerate(intimacy, [chip.trait])
+      setSelectedChip(chipId);
+      const chip = CHIPS.find((c) => c.id === chipId)!;
+      doGenerate(intimacy, [chip.trait]);
     }
-  }
+  };
 
-  const currentText = history[historyIndex] ?? ''
-  const intimacy = toNearestIntimacy(sliderValue)
-  const trackPct = (sliderValue / 4) * 100
+  const currentText = history[historyIndex] ?? '';
+  const intimacy = toNearestIntimacy(sliderValue);
+  const trackPct = (sliderValue / 4) * 100;
 
   return (
     <motion.div
@@ -84,13 +85,21 @@ export default function NenepPopup({
           border: '1px solid #FECACA',
         }}
       >
-        <div className="m-2 rounded-xl bg-white overflow-hidden" style={{ border: '1px solid #e5e7eb' }}>
+        <div
+          className="m-2 rounded-xl bg-white overflow-hidden"
+          style={{ border: '1px solid #e5e7eb' }}
+        >
           <div className="px-4 py-3 flex flex-col gap-2.5">
             {/* 닫기 버튼 */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5 flex-1">
-                <span className="text-[11px] font-semibold text-gray-400 flex-shrink-0 whitespace-nowrap">관계온도</span>
-                <span className="text-[11px] font-bold flex-shrink-0 w-20" style={{ color: '#E57373' }}>
+                <span className="text-[11px] font-semibold text-gray-400 flex-shrink-0 whitespace-nowrap">
+                  관계온도
+                </span>
+                <span
+                  className="text-[11px] font-bold flex-shrink-0 w-20"
+                  style={{ color: '#E57373' }}
+                >
                   {INTIMACY_LABELS[intimacy]}
                 </span>
                 <div className="flex-1 pt-3">
@@ -101,16 +110,18 @@ export default function NenepPopup({
                     step={0.01}
                     value={sliderValue}
                     onChange={(e) => {
-                      const nextValue = Number(e.target.value)
-                      const nextIntimacy = toNearestIntimacy(nextValue)
-                      setSliderValue(nextValue)
+                      const nextValue = Number(e.target.value);
+                      const nextIntimacy = toNearestIntimacy(nextValue);
+                      setSliderValue(nextValue);
                       if (nextIntimacy !== intimacy) {
-                        const chip = CHIPS.find((c) => c.id === selectedChip)
-                        doGenerate(nextIntimacy, chip ? [chip.trait] : [])
+                        const chip = CHIPS.find((c) => c.id === selectedChip);
+                        doGenerate(nextIntimacy, chip ? [chip.trait] : []);
                       }
                     }}
                     className="w-full intimacy-slider"
-                    style={{ background: `linear-gradient(to right, #E57373 ${trackPct}%, #FECACA ${trackPct}%)` }}
+                    style={{
+                      background: `linear-gradient(to right, #E57373 ${trackPct}%, #FECACA ${trackPct}%)`,
+                    }}
                   />
                   <div className="relative mt-1.5 h-3 text-[10px] font-semibold text-gray-300">
                     {([0, 1, 2, 3, 4] as const).map((level) => (
@@ -137,19 +148,38 @@ export default function NenepPopup({
 
             {/* 텍스트 */}
             <div>
-              <div className="text-[11px] font-semibold text-gray-400 mb-1.5">텍스트</div>
+              <div className="text-[11px] font-semibold text-gray-400 mb-1.5">
+                텍스트
+              </div>
               <div
                 className="rounded-xl px-3.5 py-2.5 text-sm text-gray-700 leading-relaxed min-h-[64px] whitespace-pre-line"
                 style={{ background: '#FDECEA' }}
               >
                 <AnimatePresence mode="wait">
                   {loading ? (
-                    <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-2 py-1">
-                      <div className="h-3 rounded animate-pulse w-11/12" style={{ background: '#FECACA' }} />
-                      <div className="h-3 rounded animate-pulse w-8/12" style={{ background: '#FECACA' }} />
+                    <motion.div
+                      key="loading"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="space-y-2 py-1"
+                    >
+                      <div
+                        className="h-3 rounded animate-pulse w-11/12"
+                        style={{ background: '#FECACA' }}
+                      />
+                      <div
+                        className="h-3 rounded animate-pulse w-8/12"
+                        style={{ background: '#FECACA' }}
+                      />
                     </motion.div>
                   ) : (
-                    <motion.span key={historyIndex} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.15 }}>
+                    <motion.span
+                      key={historyIndex}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.15 }}
+                    >
                       {currentText}
                     </motion.span>
                   )}
@@ -162,18 +192,21 @@ export default function NenepPopup({
               <div className="flex items-center gap-1.5">
                 <button
                   onClick={() => {
-                    const chip = CHIPS.find((c) => c.id === selectedChip)
-                    doGenerate(intimacy, chip ? [chip.trait] : [])
+                    const chip = CHIPS.find((c) => c.id === selectedChip);
+                    doGenerate(intimacy, chip ? [chip.trait] : []);
                   }}
                   disabled={loading}
                   className="flex items-center gap-1 px-2 h-7 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-40"
                   style={{ color: '#E8875A' }}
                 >
-                  <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
+                  <RefreshCw
+                    size={13}
+                    className={loading ? 'animate-spin' : ''}
+                  />
                 </button>
 
                 {CHIPS.map((chip) => {
-                  const isActive = selectedChip === chip.id
+                  const isActive = selectedChip === chip.id;
                   return (
                     <button
                       key={chip.id}
@@ -182,14 +215,22 @@ export default function NenepPopup({
                       className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all disabled:opacity-40"
                       style={
                         isActive
-                          ? { background: '#FFF5F5', color: '#E57373', border: '1px solid #FECACA' }
-                          : { background: '#F5F5F5', color: '#9CA3AF', border: '1px solid #E5E7EB' }
+                          ? {
+                              background: '#FFF5F5',
+                              color: '#E57373',
+                              border: '1px solid #FECACA',
+                            }
+                          : {
+                              background: '#F5F5F5',
+                              color: '#9CA3AF',
+                              border: '1px solid #E5E7EB',
+                            }
                       }
                     >
                       {isActive && <span>✓</span>}
                       {chip.label}
                     </button>
-                  )
+                  );
                 })}
               </div>
 
@@ -222,5 +263,5 @@ export default function NenepPopup({
         </div>
       </div>
     </motion.div>
-  )
+  );
 }
