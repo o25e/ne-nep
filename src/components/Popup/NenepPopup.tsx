@@ -42,12 +42,11 @@ export default function NenepPopup({
     setSelectedChip(null);
   }, [contact, draft]);
 
-  const doGenerate = (targetIntimacy: Intimacy, extraTraits?: string[]) => {
+  const doGenerate = (targetIntimacy: Intimacy, _extraTraits?: string[]) => {
     setLoading(true);
     setTimeout(() => {
       const nextIndex = history.length;
-      const combinedTraits = [...contact.traits, ...(extraTraits ?? [])];
-      const msg = generateSingleMessage(contact);
+      const msg = generateSingleMessage(contact, targetIntimacy);
       setHistory((prev) => [...prev, msg]);
       setHistoryIndex(nextIndex);
       setLoading(false);
