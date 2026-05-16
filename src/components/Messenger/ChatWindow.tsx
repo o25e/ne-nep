@@ -3,12 +3,21 @@ import { Phone, Video, Search, MoreHorizontal } from 'lucide-react';
 import { Contact, Message, chatRooms } from '../../data/mockData';
 import MessageGroupRow, { buildGroups } from './MessageBubble';
 import MessageInput from './MessageInput';
+import OnboardingPopup from '../Popup/OnboardingPopup';
 
-export default function ChatWindow({ contact }: { contact: Contact }) {
+interface ChatWindowProps {
+  contact: Contact;
+  hasCompletedOnboarding: boolean;
+  onCompleteOnboarding: () => void;
+}
+
+export default function ChatWindow({ contact, hasCompletedOnboarding, onCompleteOnboarding }: ChatWindowProps) {
   const [messages, setMessages] = useState<Message[]>(
     chatRooms[contact.id] ?? [],
   );
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  const isNewConversation = messages.length === 0 && !hasCompletedOnboarding;
 
   useEffect(() => {
     setMessages(chatRooms[contact.id] ?? []);
@@ -75,23 +84,29 @@ export default function ChatWindow({ contact }: { contact: Contact }) {
         </div>
       </div>
 
-      <div className="flex items-center justify-center py-3">
-        <div
-          className="text-[11px] text-gray-500 px-3 py-1 rounded-full"
-          style={{ background: 'rgba(0,0,0,0.06)' }}
-        >
-          오늘
+      {!isNewConversation && (
+        <div className="flex items-center justify-center py-3">
+          <div
+            className="text-[11px] text-gray-500 px-3 py-1 rounded-full"
+            style={{ background: 'rgba(0,0,0,0.06)' }}
+          >
+            오늘
+          </div>
         </div>
-      </div>
+      )}
 
-      <div className="flex-1 overflow-y-auto scroll-light pb-2">
-        <div className="space-y-0.5 pt-1">
-          {buildGroups(messages, contact).map((g) => (
-            <MessageGroupRow key={g.key} group={g} />
-          ))}
+      {isNewConversation ? (
+        <OnboardingPopup onComplete={onCompleteOnboarding} />
+      ) : (
+        <div className="flex-1 overflow-y-auto scroll-light pb-2">
+          <div className="space-y-0.5 pt-1">
+            {buildGroups(messages, contact).map((g) => (
+              <MessageGroupRow key={g.key} group={g} />
+            ))}
+          </div>
+          <div ref={bottomRef} />
         </div>
-        <div ref={bottomRef} />
-      </div>
+      )}
 
       <MessageInput contact={contact} onSend={handleSend} />
     </div>

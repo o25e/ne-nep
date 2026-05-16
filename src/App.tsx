@@ -9,8 +9,13 @@ import { contacts } from './data/mockData'
 
 export default function App() {
   const [selectedContactId, setSelectedContactId] = useState(contacts[0].id)
+  const [completedOnboarding, setCompletedOnboarding] = useState<Set<string>>(new Set())
 
   const selectedContact = contacts.find((c) => c.id === selectedContactId)!
+
+  const handleCompleteOnboarding = () => {
+    setCompletedOnboarding((prev) => new Set([...prev, selectedContactId]))
+  }
 
   return (
     <div className="h-screen flex bg-gray-200 overflow-hidden">
@@ -53,7 +58,12 @@ export default function App() {
         {/* Messenger layout */}
         <div className="flex flex-1 overflow-hidden">
           <Sidebar selectedId={selectedContactId} onSelect={setSelectedContactId} />
-          <ChatWindow key={selectedContactId} contact={selectedContact} />
+          <ChatWindow
+            key={selectedContactId}
+            contact={selectedContact}
+            hasCompletedOnboarding={completedOnboarding.has(selectedContactId)}
+            onCompleteOnboarding={handleCompleteOnboarding}
+          />
         </div>
       </div>
 
