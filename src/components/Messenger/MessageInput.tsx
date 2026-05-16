@@ -15,12 +15,7 @@ export default function MessageInput({
   const [showPopup, setShowPopup] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const placeholder =
-    contact.intimacy >= 3
-      ? '하고 싶은 말 편하게 적어봐 — ALT+L 로 다듬기'
-      : contact.intimacy >= 1
-        ? '전달할 내용을 입력하세요 — ALT+L 로 다듬기'
-        : '메시지를 입력해주세요 — ALT+L 로 다듬기';
+  const placeholder = `${contact.inputGuide} — ALT+L 로 다듬기`;
 
   useEffect(() => {
     const handler = (e: globalThis.KeyboardEvent) => {
@@ -113,7 +108,7 @@ export default function MessageInput({
               leading-relaxed
             "
               style={{
-                minHeight: '22px',
+                minHeight: '44px',
                 maxHeight: '120px',
                 fontFamily: 'inherit',
                 letterSpacing: '0px',

@@ -6,6 +6,7 @@ export interface Contact {
   role: string;
   avatar: string;
   intimacy: Intimacy;
+  inputGuide: string;
   traits: string[];
   lastSeen: string;
   isOnline: boolean;
@@ -43,6 +44,7 @@ export const contacts: Contact[] = [
     role: '마케팅팀 팀장',
     avatar: '박',
     intimacy: 2,
+    inputGuide: '지난주 회의 때 메타 광고 CTR 지금 확인 가능한지, 검토 후 괜찮으면 진행',
     traits: ['#무뚝뚝함', '#두괄식', '#답장짧음', '#바쁨'],
     lastSeen: '방금',
     isOnline: true,
@@ -54,6 +56,7 @@ export const contacts: Contact[] = [
     role: '디자인팀',
     avatar: '이',
     intimacy: 4,
+    inputGuide: '공유받은 디자인 시안 CTA 버튼 컬러 대비 높이기, 클릭 유도 높이도록 수정 요청',
     traits: ['#친절함', '#상세설명선호', '#이모티콘많음', '#꼼꼼함'],
     lastSeen: '5분 전',
     isOnline: true,
@@ -65,6 +68,7 @@ export const contacts: Contact[] = [
     role: '외부 A사 주임',
     avatar: '안',
     intimacy: 0,
+    inputGuide: '지난 미팅 때 인플루언서 캠페인 작업 리스트 공유 요청, 다음 달 진행 예정',
     traits: ['#격식중시', '#요점중심', '#빠른결정', '#결과지향'],
     lastSeen: '1시간 전',
     isOnline: false,
@@ -76,6 +80,7 @@ export const contacts: Contact[] = [
     role: '마케팅팀 인턴',
     avatar: '송',
     intimacy: 3,
+    inputGuide: '아까 말한 프린터 고장 건 기사님 오셨는지',
     traits: ['#유머있음', '#빠른답장', '#트렌드민감', '#외향적'],
     lastSeen: '30분 전',
     isOnline: true,
