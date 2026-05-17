@@ -2,19 +2,22 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Contact, Intimacy, INTIMACY_LABELS } from '../../data/mockData';
-import { generateSingleMessage } from '../../utils/generateSingleMessage';
+import {
+  generateSingleMessage,
+  MessageFeedback,
+} from '../../utils/generateSingleMessage';
 
 const toNearestIntimacy = (value: number): Intimacy => {
   return Math.min(4, Math.max(0, Math.round(value))) as Intimacy;
 };
 
 const CHIPS = [
-  { id: 'polite', label: '더 공손하게', trait: '#공손히' },
-  { id: 'soft', label: '더 부드럽게', trait: '#부드럽게' },
-  { id: 'concise', label: '더 간결하게', trait: '#간결하게' },
+  { id: 'polite', label: '더 공손하게' },
+  { id: 'soft', label: '더 부드럽게' },
+  { id: 'concise', label: '더 간결하게' },
 ] as const;
 
-type ChipId = (typeof CHIPS)[number]['id'];
+type ChipId = MessageFeedback;
 
 export default function NenepPopup({
   draft,
@@ -42,11 +45,11 @@ export default function NenepPopup({
     setSelectedChip(null);
   }, [contact, draft]);
 
-  const doGenerate = (targetIntimacy: Intimacy, _extraTraits?: string[]) => {
+  const doGenerate = (targetIntimacy: Intimacy, feedback?: MessageFeedback) => {
     setLoading(true);
     setTimeout(() => {
       const nextIndex = history.length;
-      const msg = generateSingleMessage(contact, targetIntimacy);
+      const msg = generateSingleMessage(contact, targetIntimacy, feedback);
       setHistory((prev) => [...prev, msg]);
       setHistoryIndex(nextIndex);
       setLoading(false);
@@ -59,8 +62,7 @@ export default function NenepPopup({
       doGenerate(intimacy);
     } else {
       setSelectedChip(chipId);
-      const chip = CHIPS.find((c) => c.id === chipId)!;
-      doGenerate(intimacy, [chip.trait]);
+      doGenerate(intimacy, chipId);
     }
   };
 
@@ -113,8 +115,7 @@ export default function NenepPopup({
                       const nextIntimacy = toNearestIntimacy(nextValue);
                       setSliderValue(nextValue);
                       if (nextIntimacy !== intimacy) {
-                        const chip = CHIPS.find((c) => c.id === selectedChip);
-                        doGenerate(nextIntimacy, chip ? [chip.trait] : []);
+                        doGenerate(nextIntimacy, selectedChip ?? undefined);
                       }
                     }}
                     className="w-full intimacy-slider"
@@ -191,8 +192,7 @@ export default function NenepPopup({
               <div className="flex items-center gap-1.5">
                 <button
                   onClick={() => {
-                    const chip = CHIPS.find((c) => c.id === selectedChip);
-                    doGenerate(intimacy, chip ? [chip.trait] : []);
+                    doGenerate(intimacy, selectedChip ?? undefined);
                   }}
                   disabled={loading}
                   className="flex items-center gap-1 px-2 h-7 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-40"
