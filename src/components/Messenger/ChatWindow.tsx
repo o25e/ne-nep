@@ -3,7 +3,6 @@ import { Phone, Video, Search, MoreHorizontal } from 'lucide-react';
 import { Contact, Message, chatRooms } from '../../data/mockData';
 import MessageGroupRow, { buildGroups } from './MessageBubble';
 import MessageInput from './MessageInput';
-import OnboardingPopup from '../Popup/OnboardingPopup';
 
 interface ChatWindowProps {
   contact: Contact;
@@ -17,7 +16,7 @@ export default function ChatWindow({ contact, hasCompletedOnboarding, onComplete
   );
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  const isNewConversation = messages.length === 0 && !hasCompletedOnboarding;
+  const isNewConversation = !hasCompletedOnboarding;
 
   useEffect(() => {
     setMessages(chatRooms[contact.id] ?? []);
@@ -95,20 +94,21 @@ export default function ChatWindow({ contact, hasCompletedOnboarding, onComplete
         </div>
       )}
 
-      {isNewConversation ? (
-        <OnboardingPopup onComplete={onCompleteOnboarding} />
-      ) : (
-        <div className="flex-1 overflow-y-auto scroll-light pb-2">
-          <div className="space-y-0.5 pt-1">
-            {buildGroups(messages, contact).map((g) => (
-              <MessageGroupRow key={g.key} group={g} />
-            ))}
-          </div>
-          <div ref={bottomRef} />
+      <div className="flex-1 overflow-y-auto scroll-light pb-2">
+        <div className="space-y-0.5 pt-1">
+          {buildGroups(messages, contact).map((g) => (
+            <MessageGroupRow key={g.key} group={g} />
+          ))}
         </div>
-      )}
+        <div ref={bottomRef} />
+      </div>
 
-      <MessageInput contact={contact} onSend={handleSend} />
+      <MessageInput
+        contact={contact}
+        onSend={handleSend}
+        showOnboarding={isNewConversation}
+        onCompleteOnboarding={onCompleteOnboarding}
+      />
     </div>
   );
 }

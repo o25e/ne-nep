@@ -1,15 +1,20 @@
 import { useRef, useState, useEffect, KeyboardEvent } from 'react';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { Paperclip, ImageIcon, Smile, Sparkles } from 'lucide-react';
 import NenepPopup from '../Popup/NenepPopup';
+import OnboardingPopup from '../Popup/OnboardingPopup';
 import { Contact } from '../../data/mockData';
 
 export default function MessageInput({
   contact,
   onSend,
+  showOnboarding,
+  onCompleteOnboarding,
 }: {
   contact: Contact;
   onSend: (text: string) => void;
+  showOnboarding?: boolean;
+  onCompleteOnboarding?: () => void;
 }) {
   const [value, setValue] = useState('');
   const [showPopup, setShowPopup] = useState(false);
@@ -58,6 +63,19 @@ export default function MessageInput({
             onApply={handleApply}
             onClose={() => setShowPopup(false)}
           />
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {showOnboarding && onCompleteOnboarding && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 6 }}
+            transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+            className="absolute bottom-[calc(100%+6px)] left-4 z-50 w-[92%] min-w-[520px] max-w-[820px]"
+          >
+            <OnboardingPopup onComplete={onCompleteOnboarding} />
+          </motion.div>
         )}
       </AnimatePresence>
 
