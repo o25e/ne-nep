@@ -9,7 +9,7 @@ interface SidebarProps {
 export default function Sidebar({ selectedId, onSelect }: SidebarProps) {
   return (
     <div
-      className="w-[260px] flex-shrink-0 flex flex-col h-full"
+      className="w-[400px] flex-shrink-0 flex flex-col h-full"
       style={{ background: '#FFFFFF', borderRight: '1px solid #E5E5E5' }}
     >
       {/* Header */}
