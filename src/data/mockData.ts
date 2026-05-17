@@ -94,18 +94,6 @@ export const contacts: Contact[] = [
     isOnline: true,
     scenario: 'casual_team',
   },
-  {
-    id: 'c5',
-    name: '한지수',
-    role: '기획팀 주임',
-    avatar: '한',
-    intimacy: 1,
-    inputGuide: '메시지를 작성해주세요.',
-    traits: ['#신중함', '#꼼꼼함', '#전문적', '#체계적'],
-    lastSeen: '방금',
-    isOnline: true,
-    scenario: 'marketing_report',
-  },
 ];
 
 export const chatRooms: Record<string, Message[]> = {
@@ -188,5 +176,4 @@ export const chatRooms: Record<string, Message[]> = {
       isMe: true,
     },
   ],
-  c5: [],
 };
