@@ -9,12 +9,12 @@ import { contacts } from './data/mockData'
 
 export default function App() {
   const [selectedContactId, setSelectedContactId] = useState(contacts[0].id)
-  const [completedOnboarding, setCompletedOnboarding] = useState<Set<string>>(new Set())
+  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false)
 
   const selectedContact = contacts.find((c) => c.id === selectedContactId)!
 
   const handleCompleteOnboarding = () => {
-    setCompletedOnboarding((prev) => new Set([...prev, selectedContactId]))
+    setHasCompletedOnboarding(true)
   }
 
   return (
@@ -61,7 +61,7 @@ export default function App() {
           <ChatWindow
             key={selectedContactId}
             contact={selectedContact}
-            hasCompletedOnboarding={completedOnboarding.has(selectedContactId)}
+            hasCompletedOnboarding={hasCompletedOnboarding}
             onCompleteOnboarding={handleCompleteOnboarding}
           />
         </div>
