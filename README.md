@@ -3,6 +3,12 @@
 > 조직 내 커뮤니케이션의 심리적 부담을 줄여주는 AI 메시지 가이드
 
 <p align="left">
+  <a href="https://ne-nep.vercel.app/" target="_blank">
+    <img src="https://img.shields.io/badge/Try NeNep-000000?style=for-the-badge&logo=vercel&logoColor=white">
+  </a>
+</p>
+
+<p align="left">
   <img src="https://img.shields.io/badge/React-61DAFB?style=flat-square&logo=React&logoColor=black">
   <img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=TypeScript&logoColor=white">
   <img src="https://img.shields.io/badge/TailwindCSS-06B6D4?style=flat-square&logo=Tailwind%20CSS&logoColor=white">
